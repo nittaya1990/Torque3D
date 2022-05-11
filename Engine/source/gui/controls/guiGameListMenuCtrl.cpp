@@ -275,8 +275,6 @@ void GuiGameListMenuCtrl::onRenderSliderOption(Row* row, Point2I currentOffset)
    Point2I arrowOffset;
    S32 columnSplit = profile->mColumnSplit * xScale;
 
-   S32 iconIndex;
-
    bool isRowSelected = (getSelected() != NO_ROW) && (row == mRows[getSelected()]);
    bool isRowHighlighted = (getHighlighted() != NO_ROW) ? ((row == mRows[getHighlighted()]) && (row->mEnabled)) : false;
    /*if (profileHasArrows)
@@ -383,8 +381,6 @@ void GuiGameListMenuCtrl::onRenderKeybindOption(Row* row, Point2I currentOffset)
    S32 columnSplit = profile->mColumnSplit * xScale;
 
    S32 rowHeight = profile->getRowHeight();
-
-   S32 optionWidth = xScale - columnSplit;
 
    GFXDrawUtil* drawer = GFX->getDrawUtil();
    //drawer->drawBitmap(row->mBitmap, )
@@ -547,7 +543,8 @@ Point2I  GuiGameListMenuCtrl::getMinExtent() const
 {
    Point2I parentMin = Parent::getMinExtent();
 
-   GuiGameListMenuProfile * profile = (GuiGameListMenuProfile *) mProfile;
+   GuiGameListMenuProfile * profile = dynamic_cast<GuiGameListMenuProfile*>(mProfile);
+   AssertFatal(profile, "Invalid profile for GuiGameListMenuCtrl!");
 
    S32 minHeight = 0;
    S32 rowHeight = profile->getRowHeight();
@@ -636,10 +633,13 @@ void GuiGameListMenuCtrl::enforceConstraints()
 
 void GuiGameListMenuCtrl::updateHeight()
 {
-   S32 minHeight = getMinExtent().y;
-   if (getHeight() < minHeight)
+   if (hasValidProfile())
    {
-      setHeight(minHeight);
+       S32 minHeight = getMinExtent().y;
+       if (getHeight() < minHeight)
+       {
+           setHeight(minHeight);
+       }
    }
 }
 
@@ -1048,7 +1048,6 @@ RectI GuiGameListMenuCtrl::getRowBounds(S32 rowIndex)
 {
    GuiGameListMenuProfile* profile = (GuiGameListMenuProfile*)mProfile;
 
-   F32 xScale = (float)getWidth() / profile->getRowWidth();
    S32 rowHeight = profile->getRowHeight();
 
    Point2I currentOffset = Point2I::Zero;
@@ -1375,9 +1374,6 @@ void GuiGameListMenuCtrl::clickKeybind(Row* row, S32 xPos)
 
    S32 rowHeight = profile->getRowHeight();
 
-   S32 optionWidth = xScale - columnSplit;
-
-   GFXDrawUtil* drawer = GFX->getDrawUtil();
    //drawer->drawBitmap(row->mBitmap, )
 
    Point2I button;
@@ -1388,7 +1384,6 @@ void GuiGameListMenuCtrl::clickKeybind(Row* row, S32 xPos)
    buttonSize.x = rowHeight / 2;
    buttonSize.y = rowHeight / 2;
 
-   GFXTextureObject* texture = row->mBitmapTex;
    RectI rect(button, buttonSize);
 
    if (rect.pointInRect(Point2I(xPos, rowHeight / 2)))
